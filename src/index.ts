@@ -1,14 +1,14 @@
 import { v4 as uuidv4 } from 'uuid';
 
 class SmartTrack {
-    disposivo: null | string = null;
+    dispositivo: null | string = null;
     paginas_visitadas: string[] = [];
     imoveis_visitados: string[] = [];
     inicio_visita: Date = new Date();
     uuid: string | null = null;
     referrer: null | string = null;
 
-    constructor() {
+    constructor(empresa:string) {
         console.log('SmartTrack iniciado!');
         const cache_visitante_id = localStorage.getItem('visitante_id')
         if (cache_visitante_id === null) {
@@ -20,7 +20,7 @@ class SmartTrack {
         }
 
         this.referrer = document.referrer;
-        this.disposivo = this.getDispositivo();
+        this.dispositivo = this.getDispositivo();
 
         //https://stackoverflow.com/questions/6390341/how-to-detect-if-url-has-changed-after-hash-in-javascript
         /* These are the modifications: */
@@ -57,22 +57,27 @@ class SmartTrack {
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'hidden') {
                 //https://www.w3.org/TR/beacon/
-                navigator.sendBeacon('https://us-central1-smartimob-dev-test.cloudfunctions.net/SmartTrackBeacon', this.buildVisitReport())
+                navigator.sendBeacon('https://us-central1-smartimob-dev-test.cloudfunctions.net/SmartTrackBeacon', this.buildVisitReport(empresa))
             }
         });
     }
-    buildVisitReport = () => {
+    buildVisitReport = (empresa:string) => {
         const fim_visita = new Date();
-        const report = {
-            disposivo: this.disposivo,
+        const report = JSON.stringify({
+            dispositivo: this.dispositivo,
             paginas_visitadas: this.paginas_visitadas,
             imoveis_visitados: this.imoveis_visitados,
             time_inicio_visita: this.inicio_visita.getTime(),
             time_fim_visita: fim_visita.getTime(),
+            empresa,
             uuid: this.uuid,
             referrer: this.referrer,
-        }
-        return JSON.stringify(report)
+        });
+        this.paginas_visitadas = [];
+        this.imoveis_visitados = [];
+        this.inicio_visita = new Date();
+        console.log('Report criado')
+        return report
     }
     //https://dev.to/itsabdessalam/detect-current-device-type-with-javascript-490j
     getDispositivo = () => {

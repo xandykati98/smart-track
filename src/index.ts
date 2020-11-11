@@ -4,7 +4,7 @@ class SmartTrack {
     disposivo: null | string = null;
     paginas_visitadas: string[] = [];
     imoveis_visitados: string[] = [];
-    inicio_sessao: Date = new Date();
+    inicio_visita: Date = new Date();
     uuid: string | null = null;
     referrer: null | string = null;
 
@@ -53,6 +53,26 @@ class SmartTrack {
                 this.imoveis_visitados.push(id_imovel);
             }
         })
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') {
+                //https://www.w3.org/TR/beacon/
+                navigator.sendBeacon('https://us-central1-smartimob-dev-test.cloudfunctions.net/SmartTrackBeacon', this.buildVisitReport())
+            }
+        });
+    }
+    buildVisitReport = () => {
+        const fim_visita = new Date();
+        const report = {
+            disposivo: this.disposivo,
+            paginas_visitadas: this.paginas_visitadas,
+            imoveis_visitados: this.imoveis_visitados,
+            time_inicio_visita: this.inicio_visita.getTime(),
+            time_fim_visita: fim_visita.getTime(),
+            uuid: this.uuid,
+            referrer: this.referrer,
+        }
+        return JSON.stringify(report)
     }
     //https://dev.to/itsabdessalam/detect-current-device-type-with-javascript-490j
     getDispositivo = () => {

@@ -65,7 +65,7 @@ class SmartTrack {
         const fim_visita = new Date();
         const report = JSON.stringify({
             dispositivo: this.dispositivo,
-            paginas_visitadas: this.paginas_visitadas,
+            paginas_visitadas: this.paginas_visitadas.length === 0 ? ['/'] : this.paginas_visitadas,
             imoveis_visitados: this.imoveis_visitados,
             time_inicio_visita: this.inicio_visita.getTime(),
             time_fim_visita: fim_visita.getTime(),

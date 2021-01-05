@@ -8,7 +8,7 @@ class SmartTrack {
     uuid: string | null = null;
     referrer: null | string = null;
 
-    constructor(empresa:string) {
+    constructor(empresa:string, options?:{noRouter?:boolean}) {
         console.log('SmartTrack iniciado!');
         const cache_visitante_id = localStorage.getItem('visitante_id')
         if (cache_visitante_id === null) {
@@ -41,8 +41,8 @@ class SmartTrack {
         window.addEventListener('popstate',()=>{
             window.dispatchEvent(new Event('locationchange'))
         });
-        window.addEventListener('locationchange', () => {
-            console.log('mudança de pagina detectada')
+
+        const contabilizarImovel = () => {
             this.paginas_visitadas.push(location.pathname)
             if (location.pathname.indexOf('/imovel/') > -1) {
                 const split_pathname = location.pathname.split('/');
@@ -52,7 +52,16 @@ class SmartTrack {
                 var id_imovel = search_url.searchParams.get("id_imovel");
                 this.imoveis_visitados.push(id_imovel);
             }
+        }
+
+        window.addEventListener('locationchange', () => {
+            console.log('mudança de pagina detectada')
+            contabilizarImovel()
         })
+
+        if (options && options.noRouter === true) {
+            contabilizarImovel()
+        }
 
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'hidden') {

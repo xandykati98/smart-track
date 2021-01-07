@@ -47,7 +47,7 @@ class SmartTrack {
             if (location.pathname.indexOf('/imovel/') > -1) {
                 const split_pathname = location.pathname.split('/');
                 this.imoveis_visitados.push(split_pathname[split_pathname.length - 1]);
-            } else if (location.pathname.indexOf('/perfilImovel') > -1) {
+            } else if (location.pathname.indexOf('/perfilImovel') > -1 || location.pathname.indexOf('/cardImovel') > -1) {
                 const search_url = new URL(location.href);
                 var id_imovel = search_url.searchParams.get("id_imovel");
                 this.imoveis_visitados.push(id_imovel);

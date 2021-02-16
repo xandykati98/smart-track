@@ -7,6 +7,7 @@ class SmartTrack {
     inicio_visita: Date = new Date();
     uuid: string | null = null;
     referrer: null | string = null;
+    filtros: any[] = []
 
     constructor(empresa:string, options?:{noRouter?:boolean}) {
         console.log('SmartTrack iniciado!');
@@ -72,21 +73,32 @@ class SmartTrack {
     }
     buildVisitReport = (empresa:string) => {
         const fim_visita = new Date();
-        const report = JSON.stringify({
+        const report_obj:any = {
             dispositivo: this.dispositivo,
             paginas_visitadas: this.paginas_visitadas.length === 0 ? ['/'] : this.paginas_visitadas,
             imoveis_visitados: this.imoveis_visitados,
             time_inicio_visita: this.inicio_visita.getTime(),
             time_fim_visita: fim_visita.getTime(),
             empresa,
+            filtros: this.filtros,
             uuid: this.uuid,
             referrer: this.referrer,
-        });
+        }
+        const report = JSON.stringify(report_obj);
         this.paginas_visitadas = [];
         this.imoveis_visitados = [];
         this.inicio_visita = new Date();
         console.log('Report criado')
         return report
+    }
+    getAsVisitante = () => {
+        return {
+            visitas: {
+                imoveis_visitados: this.imoveis_visitados,
+                time_inicio_visita: this.inicio_visita.getTime(),
+                time_fim_visita: new Date().getTime(),
+            }
+        }
     }
     //https://dev.to/itsabdessalam/detect-current-device-type-with-javascript-490j
     getDispositivo = () => {
@@ -101,6 +113,10 @@ class SmartTrack {
         ) {
           return "mobile";
         }
+        return "desktop";
+    };
+    registrarFiltro = (filtro:any) => {
+        this.filtros.push(filtro)
         return "desktop";
     };
 }

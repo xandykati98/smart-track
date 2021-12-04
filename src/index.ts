@@ -4,6 +4,14 @@ class SmartTrack {
     dispositivo: null | string = null;
     paginas_visitadas: string[] = [];
     imoveis_visitados: string[] = [];
+    imoveis_tempo_visitado: number[] = [];
+    imoveis_tempo_visitado_check: boolean[] = [];
+    hidden_delay: number = 0;
+    fotos_tempo_info: {
+        [imovel_id: string]: {
+            [foto_id: string]: number
+        }
+    } = {}
     inicio_visita: Date = new Date();
     uuid: string | null = null;
     referrer: null | string = null;
@@ -45,13 +53,24 @@ class SmartTrack {
 
         const contabilizarImovel = () => {
             this.paginas_visitadas.push(location.pathname)
+            if (this.imoveis_tempo_visitado.length > 0) {
+                const imoveis_tempo_visitado_last = this.imoveis_tempo_visitado.length - 1;
+                if (this.imoveis_tempo_visitado_check[imoveis_tempo_visitado_last] === false) {
+                    this.imoveis_tempo_visitado[imoveis_tempo_visitado_last] = (new Date().getTime() - this.imoveis_tempo_visitado[imoveis_tempo_visitado_last]) - this.hidden_delay;
+                    this.imoveis_tempo_visitado_check[imoveis_tempo_visitado_last] = true;
+                }
+            }
             if (location.pathname.indexOf('/imovel/') > -1) {
                 const split_pathname = location.pathname.split('/');
                 this.imoveis_visitados.push(split_pathname[split_pathname.length - 1]);
+                this.imoveis_tempo_visitado.push(new Date().getTime())
+                this.imoveis_tempo_visitado_check.push(false)
             } else if (location.pathname.indexOf('/perfilImovel') > -1 || location.pathname.indexOf('/cardImovel') > -1) {
                 const search_url = new URL(location.href);
                 var id_imovel = search_url.searchParams.get("id_imovel");
                 this.imoveis_visitados.push(id_imovel);
+                this.imoveis_tempo_visitado.push(new Date().getTime())
+                this.imoveis_tempo_visitado_check.push(false)
             }
         }
 
@@ -66,10 +85,28 @@ class SmartTrack {
 
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'hidden') {
+                this.hidden_delay = new Date().getTime()
                 //https://www.w3.org/TR/beacon/
-                navigator.sendBeacon('https://us-central1-smartimob-dev-test.cloudfunctions.net/SmartTrackBeacon', this.buildVisitReport(empresa))
+                
+                const body = this.buildVisitReport(empresa)
+                const headers = {
+                    type: 'application/json',
+                };
+                const blob = new Blob([JSON.stringify(body)], headers);
+                navigator.sendBeacon('https://us-central1-smartimob-dev-test.cloudfunctions.net/SmartTrackBeacon', blob)
+            } else {
+                this.hidden_delay = new Date().getTime() - this.hidden_delay
             }
         });
+    }
+    setFotoTempo = ({ id, imovel, tempo }: { id: string, imovel: string, tempo: number }) => {
+        if (!this.fotos_tempo_info[imovel]) this.fotos_tempo_info[imovel] = {};
+        this.fotos_tempo_info[imovel][id] = tempo
+    }
+    addFotoTempo = ({ id, imovel, tempo }: { id: string, imovel: string, tempo: number }) => {
+        if (!this.fotos_tempo_info[imovel]) this.fotos_tempo_info[imovel] = {};
+        if (!this.fotos_tempo_info[imovel][id]) this.fotos_tempo_info[imovel][id] = 0;
+        this.fotos_tempo_info[imovel][id] += tempo
     }
     buildVisitReport = (empresa:string) => {
         const fim_visita = new Date();
@@ -126,6 +163,5 @@ declare global {
         SmartTrack: typeof SmartTrack;
     }
 }
-
 
 window.SmartTrack = SmartTrack;

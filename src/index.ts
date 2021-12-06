@@ -87,17 +87,14 @@ class SmartTrack {
             if (document.visibilityState === 'hidden') {
                 this.hidden_delay = new Date().getTime()
                 //https://www.w3.org/TR/beacon/
-                
-                const body = this.buildVisitReport(empresa)
-                const headers = {
-                    type: 'application/json',
-                };
-                const blob = new Blob([JSON.stringify(body)], headers);
-                navigator.sendBeacon('https://us-central1-smartimob-dev-test.cloudfunctions.net/SmartTrackBeacon', blob)
+                navigator.sendBeacon('https://us-central1-smartimob-dev-test.cloudfunctions.net/SmartTrackBeacon', this.buildVisitReport(empresa))
             } else {
                 this.hidden_delay = new Date().getTime() - this.hidden_delay
             }
         });
+        
+        // @ts-ignore
+        window.SmartTrackAtivo = this;
     }
     setFotoTempo = ({ id, imovel, tempo }: { id: string, imovel: string, tempo: number }) => {
         if (!this.fotos_tempo_info[imovel]) this.fotos_tempo_info[imovel] = {};

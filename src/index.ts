@@ -79,8 +79,10 @@ class SmartTrack {
             contabilizarImovel()
         })
 
-        if (options && options.noRouter === true) {
+        try {
             contabilizarImovel()
+        } catch (error) {
+            console.error(error)
         }
 
         document.addEventListener('visibilitychange', () => {
